@@ -250,3 +250,50 @@ LangGraph Agent 的核心逻辑围绕着一个迭代的研究循环，该循环�
     (确保在 `docker-compose.yml` 或关联的 `.env` 文件中配置了必要的环境变量如 `GOOGLE_API_KEY`。)
 
 使用 Docker Compose 是推荐的方式，因为它能更好地管理多服务应用的构建、网络和运行。请查阅项目中的 `Dockerfile` 和 `docker-compose.yml` (如果存在) 以获取确切的构建和运行指令。
+
+# 高级配置：使用不同语言模型提供商
+
+除了默认使用 Google Gemini 模型外，后端代理还可以配置为使用其他语言模型提供商，例如本地运行的 Ollama 或 Azure OpenAI 服务。这主要通过设置位于 `backend/` 目录下的 `.env` 文件中的环境变量来控制。
+
+## 基本模型提供商配置
+
+*   `MODEL_PROVIDER`: 指定要使用的模型提供商。
+    *   `"gemini"`: (默认) 使用 Google Gemini 模型。需要配置 `GEMINI_API_KEY`。
+    *   `"ollama"`: 使用 Ollama 服务。
+    *   `"azure_openai"`: 使用 Azure OpenAI 服务。
+
+## 使用 Ollama
+
+要将代理配置为使用本地或其他网络可访问的 Ollama 服务：
+
+1.  在 `backend/.env` 文件中设置 `MODEL_PROVIDER="ollama"`。
+2.  配置 Ollama API 的基础 URL：
+    `OLLAMA_API_BASE_URL="http://localhost:11434/v1"` (请根据您的 Ollama 服务器实际地址修改)。
+3.  指定要使用的 Ollama 模型名称：
+    `OLLAMA_MODEL_NAME="llama3"` (例如，使用 Llama 3 模型，请确保该模型已在 Ollama 中可用)。
+
+请确保您的 Ollama 服务正在运行，并且指定的模型已经通过 `ollama pull <model_name>` 等命令下载并可用。
+
+## 使用 Azure OpenAI
+
+要将代理配置为使用 Azure OpenAI 服务：
+
+1.  在 `backend/.env` 文件中设置 `MODEL_PROVIDER="azure_openai"`。
+2.  配置您的 Azure OpenAI 服务详情：
+    *   `AZURE_OPENAI_API_BASE_URL="YOUR_AZURE_OPENAI_ENDPOINT"` (例如: `https://your-resource-name.openai.azure.com`)
+    *   `AZURE_OPENAI_API_VERSION="YOUR_AZURE_API_VERSION"` (例如: `2023-07-01-preview`)
+    *   `AZURE_OPENAI_DEPLOYMENT_NAME="YOUR_AZURE_DEPLOYMENT_NAME"` (您在 Azure 上部署模型的名称)
+    *   `AZURE_OPENAI_API_KEY="YOUR_AZURE_OPENAI_API_KEY"`
+
+请确保您的 Azure OpenAI 服务已正确部署，并且上述配置信息准确无误。
+
+## Web 搜索功能配置
+
+无论您选择哪种语言模型提供商，如果您希望启用代理的 Web 搜索功能（通过 LangChain Google Search 工具实现），请确保在 `backend/.env` 文件中配置以下环境变量：
+
+*   `GOOGLE_API_KEY="YOUR_GOOGLE_SEARCH_API_KEY"`
+    *   此密钥用于访问 Google Custom Search API。它可以与 `GEMINI_API_KEY` 相同，前提是该密钥也被授权用于搜索 API。
+*   `GOOGLE_CSE_ID="YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID"`
+    *   这是您的 Google 可编程搜索引擎 (Custom Search Engine) 的 ID。
+
+如果未提供这些密钥，Web 搜索步骤将被跳过，代理可能仅依赖其内部知识或给出无法执行搜索的提示。

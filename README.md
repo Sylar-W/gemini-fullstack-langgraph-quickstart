@@ -32,7 +32,11 @@ Follow these steps to get the application running locally for development and te
 -   **`GEMINI_API_KEY`**: The backend agent requires a Google Gemini API key.
     1.  Navigate to the `backend/` directory.
     2.  Create a file named `.env` by copying the `backend/.env.example` file.
-    3.  Open the `.env` file and add your Gemini API key: `GEMINI_API_KEY="YOUR_ACTUAL_API_KEY"`
+    3.  Open the `.env` file and add your Gemini API key: `GEMINI_API_KEY="YOUR_ACTUAL_API_KEY"`.
+    4.  By default, the agent uses Google Gemini models. You can configure it to use other providers (see "Advanced Configuration" below). The primary model provider is set using the `MODEL_PROVIDER` environment variable (e.g., `MODEL_PROVIDER="gemini"`).
+    5.  For web search functionality using the integrated LangChain Google Search tool, you may also need to configure:
+        *   `GOOGLE_API_KEY="YOUR_GOOGLE_SEARCH_API_KEY"` (this can be the same as `GEMINI_API_KEY` if it has Google Custom Search API enabled).
+        *   `GOOGLE_CSE_ID="YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID"`
 
 **2. Install Dependencies:**
 
@@ -64,6 +68,44 @@ _Alternatively, you can run the backend and frontend development servers separat
 ## How the Backend Agent Works (High-Level)
 
 The core of the backend is a LangGraph agent defined in `backend/src/agent/graph.py`. It follows these steps:
+
+## Advanced Configuration: Using Different LLM Providers
+
+The backend agent can be configured to use different LLM providers beyond the default Google Gemini. This is controlled by the `MODEL_PROVIDER` environment variable and other provider-specific variables set in the `backend/.env` file.
+
+### Using Ollama
+
+To use a local Ollama instance:
+
+1.  Set `MODEL_PROVIDER="ollama"` in your `backend/.env` file.
+2.  Specify the Ollama API base URL:
+    `OLLAMA_API_BASE_URL="http://localhost:11434/v1"` (or your Ollama server address).
+3.  Specify the Ollama model name you want to use:
+    `OLLAMA_MODEL_NAME="llama3"` (e.g., for Llama 3).
+
+Make sure your Ollama server is running and the specified model is available.
+
+### Using Azure OpenAI
+
+To use Azure OpenAI services:
+
+1.  Set `MODEL_PROVIDER="azure_openai"` in your `backend/.env` file.
+2.  Configure your Azure OpenAI service details:
+    *   `AZURE_OPENAI_API_BASE_URL="YOUR_AZURE_OPENAI_ENDPOINT"` (e.g., `https://your-resource-name.openai.azure.com`)
+    *   `AZURE_OPENAI_API_VERSION="YOUR_AZURE_API_VERSION"` (e.g., `2023-07-01-preview`)
+    *   `AZURE_OPENAI_DEPLOYMENT_NAME="YOUR_AZURE_DEPLOYMENT_NAME"` (the name of your model deployment in Azure)
+    *   `AZURE_OPENAI_API_KEY="YOUR_AZURE_OPENAI_API_KEY"`
+
+Ensure your Azure OpenAI service is provisioned and the deployment name is correct.
+
+### Web Search Configuration
+
+Regardless of the LLM provider, if you want to use the web search capabilities, ensure the following are set in `backend/.env`:
+
+*   `GOOGLE_API_KEY="YOUR_GOOGLE_SEARCH_API_KEY"` (can often be the same as `GEMINI_API_KEY` if the key has permissions for the Custom Search API).
+*   `GOOGLE_CSE_ID="YOUR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID"`
+
+If these are not provided, the web search step will be skipped.
 
 ![Agent Flow](./agent.png)
 
